@@ -30,12 +30,12 @@ FrameCanvas::FrameCanvas(wxSFDiagramManager* manager, wxWindow* parent, wxWindow
     //SetPrintMode(prnMAP_TO_MARGINS);
 
 	// the canvas background can be filled with a solid colour ...
-	//RemoveStyle(sfsGRADIENT_BACKGROUND);
-	//SetBackgroundColour(sfdvSHAPECANVAS_BACKGROUNDCOLOR);
+	RemoveStyle(sfsGRADIENT_BACKGROUND);
+	SetBackgroundColour(sfdvSHAPECANVAS_BACKGROUNDCOLOR);
 	// ... or by a gradient fill
-	AddStyle(sfsGRADIENT_BACKGROUND);
-	SetGradientFrom(sfdvSHAPECANVAS_GRADIENT_FROM);
-	SetGradientTo(sfdvSHAPECANVAS_GRADIENT_TO);
+	// AddStyle(sfsGRADIENT_BACKGROUND);
+	// SetGradientFrom(sfdvSHAPECANVAS_GRADIENT_FROM);
+	// SetGradientTo(sfdvSHAPECANVAS_GRADIENT_TO);
 
 	// also shadows style can be set here:
 	//SetShadowFill(wxBrush(wxColour(100, 100, 100), wxCROSSDIAG_HATCH)); // standard values can be sfdvSHAPECANVAS_SHADOWBRUSH or sfdvSHAPECANVAS_SHADOWCOLOR
