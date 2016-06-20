@@ -14,6 +14,8 @@
 #define new DEBUG_NEW
 #endif
 
+#define TRY_DIRECT2D 1
+
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 #include <wx/sstream.h>
@@ -352,17 +354,23 @@ void wxSFShapeCanvas::_OnPaint(wxPaintEvent& event)
 	this->DrawBackground( dc, sfFROM_PAINT );
 	this->DrawContent( dc, sfFROM_PAINT );
 	this->DrawForeground( dc, sfFROM_PAINT );
-#else
+#else // wxVERSION_NUMBER < 2900
 #if wxUSE_GRAPHICS_CONTEXT
     if( IsGCEnabled() )
 	{
 		wxGCDC gdc( paintDC );
 		
+#ifdef TRY_DIRECT2D
+        wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
+        wxGraphicsContext* pGC = renderer->CreateContext(paintDC);
+        gdc.SetGraphicsContext(pGC);
+#else // TRY_DIRECT2D    
 		PrepareDC( paintDC );
 		PrepareDC( gdc );
-		
-		// scale  GC
 		wxGraphicsContext *pGC = gdc.GetGraphicsContext();
+#endif // TRY_DIRECT2D
+
+		// scale  GC
 		pGC->Scale( m_Settings.m_nScale, m_Settings.m_nScale );
 	
 		this->DrawBackground( gdc, sfFROM_PAINT );
@@ -378,19 +386,21 @@ void wxSFShapeCanvas::_OnPaint(wxPaintEvent& event)
 		this->DrawContent( dc, sfFROM_PAINT );
 		this->DrawForeground( dc, sfFROM_PAINT );
 	}
-#else
+#else // wxUSE_GRAPHICS_CONTEXT
 	wxSFScaledDC dc( (wxWindowDC*)&paintDC, m_Settings.m_nScale );
 	
 	PrepareDC( dc );
 	this->DrawBackground( dc, sfFROM_PAINT  );
 	this->DrawContent( dc, sfFROM_PAINT  );
 	this->DrawForeground( dc, sfFROM_PAINT  );
-#endif
-#endif
+#endif // wxUSE_GRAPHICS_CONTEXT
+#endif // wxVERSION_NUMBER < 2900
 }
 
 void wxSFShapeCanvas::DrawBackground(wxDC& dc, bool fromPaint)
 {
+    wxLongLong start = wxGetUTCTimeUSec();
+    
     #if wxVERSION_NUMBER < 2900 && wxUSE_GRAPHICS_CONTEXT
     wxSFScaledDC::EnableGC( false );
     #endif
@@ -406,7 +416,7 @@ void wxSFShapeCanvas::DrawBackground(wxDC& dc, bool fromPaint)
 	}
 	else
 	{
-		dc.SetBackground(wxBrush(m_Settings.m_nBackgroundColor));
+		dc.SetBackground(*wxWHITE_BRUSH); // wxBrush(m_Settings.m_nBackgroundColor));
 		dc.Clear();
 	}
 
@@ -436,6 +446,10 @@ void wxSFShapeCanvas::DrawBackground(wxDC& dc, bool fromPaint)
     #if wxVERSION_NUMBER < 2900 && wxUSE_GRAPHICS_CONTEXT
     wxSFScaledDC::EnableGC( m_fEnableGC );
     #endif
+
+    wxLongLong time = wxGetUTCTimeUSec() - start;
+    
+    // wxPuts (time.ToString());
 }
 
 void wxSFShapeCanvas::DrawForeground(wxDC& dc, bool fromPaint)
