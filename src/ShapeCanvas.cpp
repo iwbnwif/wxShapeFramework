@@ -358,22 +358,26 @@ void wxSFShapeCanvas::_OnPaint(wxPaintEvent& event)
 #if wxUSE_GRAPHICS_CONTEXT
     if( IsGCEnabled() )
 	{
+        // Always draw the background onto a plain old wxDC for speed.
+		wxSFScaledDC dc( (wxWindowDC*)&paintDC, m_Settings.m_nScale );
+		PrepareDC( dc );
+		DrawBackground( dc, sfFROM_PAINT );
+
 		wxGCDC gdc( paintDC );
+
+		PrepareDC( paintDC );
+		PrepareDC( gdc );
 		
 #ifdef TRY_DIRECT2D
         wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
         wxGraphicsContext* pGC = renderer->CreateContext(paintDC);
         gdc.SetGraphicsContext(pGC);
 #else // TRY_DIRECT2D    
-		PrepareDC( paintDC );
-		PrepareDC( gdc );
 		wxGraphicsContext *pGC = gdc.GetGraphicsContext();
 #endif // TRY_DIRECT2D
 
 		// scale  GC
 		pGC->Scale( m_Settings.m_nScale, m_Settings.m_nScale );
-	
-		this->DrawBackground( gdc, sfFROM_PAINT );
 		this->DrawContent( gdc, sfFROM_PAINT );
 		this->DrawForeground( gdc, sfFROM_PAINT );
 	}
